@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glovo Image Extractor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <h1>Glovo Image Extractor</h1>
+
+    <!-- Dark/Light Mode Toggle -->
+    <div class="theme-switcher" style="display:flex; align-items:center; justify-content:center; margin-bottom:20px; gap:10px;">
+      <label class="switch">
+        <input type="checkbox" id="themeToggle">
+        <span class="slider round"></span>
+      </label>
+      <span id="themeLabel">Light Mode</span>
+    </div>
+
+    <!-- Store Input -->
+    <div class="input-group">
+      <label>For STORES only(not country specific)</label>
+      <input id="urlInput" placeholder="Paste Glovo store URL here">
+      <div class="input-buttons">
+        <button id="loadBtn">Load Store Images</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <!-- Restaurant Input -->
+    <div class="input-group">
+      <label>For Bulgarian and Polish restaurants only</label>
+      <input id="restaurantUrlInput" placeholder="Paste Glovo restaurant URL here">
+      <div class="input-buttons">
+        <button id="loadRestaurantBtn">Load Restaurant Images</button>
+      </div>
+    </div>
+
+    <!-- Third Input: Paste body HTML -->
+    <div class="input-group">
+      <label>For Portuguese and Romanian restaurants</label>
+      <input id="dishHtmlInput" placeholder="Paste body HTML here">
+      <div class="instructions">
+        Instructions: Go to the Glovo menu, scroll to the bottom, inspect element, find the &lt;body&gt; tag, right click on the &lt;body&gt; tag and select "Copy outerHTML", then paste it in this input field.
+      </div>
+      <div class="input-buttons">
+        <button id="extractDishImagesBtn">Extract Dish Images</button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+      <button id="copyBtn">Copy to Clipboard</button>
+      <button id="downloadBtn">Download .txt</button>
+    </div>
+
+    <!-- Output Containers -->
+    <div id="outputContainer" class="output-container"></div>
+    <div id="dishImagesContainer" class="output-container"></div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

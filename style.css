@@ -1,0 +1,313 @@
+/* --- Global Styles --- */
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #121212;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+.app {
+  background: #1e1e1e;
+  padding: 40px 30px;
+  border-radius: 20px;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.app:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.85);
+  transform: translateY(-2px);
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+/* --- Input Group --- */
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-direction: column;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.input-group .instructions {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.input-group input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #2a2a2a;
+  color: #ffffff;
+  outline: none;
+  font-size: 16px;
+  transition: border 0.3s, box-shadow 0.3s;
+}
+
+.input-group input::placeholder {
+  color: #888;
+}
+
+.input-group input:focus {
+  border-color: #00c853;
+  box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.3);
+}
+
+.input-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Buttons --- */
+button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: #00c853;
+  color: #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
+}
+
+button:hover {
+  background: #00b34d;
+  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* --- Actions Container --- */
+.actions {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* --- Output Container --- */
+.output-container {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #33333300;
+  border-radius: 12px;
+  padding: 15px;
+  background: #fbf5f500; /* Transparent default */
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  transition: background 0.3s, border 0.3s;
+}
+
+.output-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.output-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 200, 83, 0.5);
+  border-radius: 4px;
+}
+
+/* --- URL Entries --- */
+.url-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.url-entry img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
+}
+
+.url-entry span {
+  flex: 1;
+  cursor: text;
+  user-select: text;
+  transition: color 0.2s;
+}
+
+.url-entry span:hover {
+  color: #00c853;
+  text-decoration: underline;
+}
+
+/* --- Age Warning --- */
+.age-warning {
+  background-color: #3e3e3e;
+  color: #00c853;
+  border: 1px solid #00c853;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-buttons {
+    flex-direction: column;
+  }
+
+  .input-buttons button {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
+
+/* --- Light Mode --- */
+body.light-mode {
+  background: #f5f5f5;
+  color: #222;
+}
+
+body.light-mode .app {
+  background: #ffffff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode h1 {
+  color: #111;
+}
+
+body.light-mode .input-group input {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #111;
+}
+
+body.light-mode .input-group input::placeholder {
+  color: #666;
+}
+
+body.light-mode .output-container {
+  background: transparent; /* Fully transparent */
+  border: 1px solid transparent; /* Transparent border */
+  color: #111;
+}
+
+body.light-mode button {
+  background: #00c853;
+  color: #fff;
+}
+
+body.light-mode button:hover {
+  background: #00b34d;
+  box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+}
+
+/* --- Labels and instructions colors --- */
+/* Dark mode labels gray */
+body:not(.light-mode) .input-group label {
+  color: #888;
+}
+
+body:not(.light-mode) .input-group .instructions {
+  color: #aaa;
+}
+
+/* Light mode labels green */
+body.light-mode .input-group label {
+  color: #00c853;
+}
+
+body.light-mode .input-group .instructions {
+  color: #444;
+}
+
+/* --- Toggle Switch --- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #00c853;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+
