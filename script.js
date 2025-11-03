@@ -43,7 +43,7 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
       const description = row.querySelector('[data-test-id="product-row-description__highlighter"]')?.textContent.trim() || '';
       const img = row.querySelector('img.product-row__picture')?.src || 'no image found';
       let priceRaw = row.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
-      let price = priceRaw.split('(')[0].trim().replace(',', '.');
+      let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
       items.push({ name, description, url: img, category: categoryName, price });
     });
   }
@@ -54,12 +54,13 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
     const description = itemTile.querySelector('p.ItemTile_description__XXXX')?.textContent.trim() || "";
     let url = itemTile.querySelector('img.ItemTile_image__Qr45O')?.src || "no image found";
 
-    // ✅ Updated price extraction (new + old)
+    // ✅ Updated price extraction logic (prefer original price when present)
     let priceRaw =
-      itemTile.querySelector('div.ItemTile_priceContainer__b3Shd span.pintxo-typography-body2')?.textContent.trim() ||
+      itemTile.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() || // Prefer original price (pre-discount)
+      itemTile.querySelector('div.ItemTile_priceContainer__b3Shd span.pintxo-typography-body2')?.textContent.trim() || // Then normal one
       itemTile.querySelector('span.ItemTile_price__XXXX')?.textContent.trim() ||
       '';
-    let price = priceRaw.split('(')[0].trim().replace(',', '.');
+    let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
 
     if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
       outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
@@ -75,8 +76,12 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
     const name = itemRow.querySelector('h2.pintxo-typography-body1')?.textContent.trim() || "Unnamed item";
     const description = itemRow.querySelector('p.ItemRow_description__PfM7O')?.textContent.trim() || "";
     let url = itemRow.querySelector('div.Thumbnail_pintxo-thumbnail__OkiBe img')?.src || "no image found";
-    let priceRaw = itemRow.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
-    let price = priceRaw.split('(')[0].trim().replace(',', '.');
+
+    // ✅ Updated price extraction logic for restaurants (prefer original price)
+    let priceRaw =
+      itemRow.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() || // Prefer original (pre-discount)
+      itemRow.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
+    let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
 
     if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
       outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
@@ -292,3 +297,5 @@ themeToggle.addEventListener('change', () => {
     localStorage.setItem('theme', 'dark');
   }
 });
+
+
