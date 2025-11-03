@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -21,7 +22,7 @@
 
     <!-- Store Input -->
     <div class="input-group">
-      <label>For STORES only(not country specific)</label>
+      <label>For STORES only (not country specific)</label>
       <input id="urlInput" placeholder="Paste Glovo store URL here">
       <div class="input-buttons">
         <button id="loadBtn">Load Store Images</button>
@@ -31,40 +32,24 @@
 
     <!-- Restaurant Input -->
     <div class="input-group">
-      <label>For restaurants only</label>
+      <label>For restaurants only(not country specific)</label>
       <input id="restaurantUrlInput" placeholder="Paste Glovo restaurant URL here">
       <div class="input-buttons">
         <button id="loadRestaurantBtn">Load Restaurant Images</button>
       </div>
     </div>
 
-    <!-- Third Input: Paste body HTML -->
-    <div class="input-group">
-      <label>For Portuguese and Romanian restaurants</label>
-      <input id="dishHtmlInput" placeholder="Paste body HTML here">
-      <div class="instructions">
-        Instructions: Go to the Glovo menu, scroll to the bottom, inspect element, find the &lt;body&gt; tag, right click on the &lt;body&gt; tag and select "Copy outerHTML", then paste it in this input field.
-      </div>
-      <div class="input-buttons">
-        <button id="extractDishImagesBtn">Extract Dish Images</button>
-      </div>
-    </div>
-
     <!-- Action Buttons -->
     <div class="actions">
       <button id="copyBtn">Copy to Clipboard</button>
-      
     </div>
 
-    <!-- Output Containers -->
+    <!-- Output Container -->
     <div id="outputContainer" class="output-container"></div>
-    <div id="dishImagesContainer" class="output-container"></div>
-
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
-
 
