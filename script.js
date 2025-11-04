@@ -54,10 +54,9 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
     const description = itemTile.querySelector('p.ItemTile_description__XXXX')?.textContent.trim() || "";
     let url = itemTile.querySelector('img.ItemTile_image__Qr45O')?.src || "no image found";
 
-    // ✅ Updated price extraction logic (prefer original price when present)
     let priceRaw =
-      itemTile.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() || // Prefer original price (pre-discount)
-      itemTile.querySelector('div.ItemTile_priceContainer__b3Shd span.pintxo-typography-body2')?.textContent.trim() || // Then normal one
+      itemTile.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() ||
+      itemTile.querySelector('div.ItemTile_priceContainer__b3Shd span.pintxo-typography-body2')?.textContent.trim() ||
       itemTile.querySelector('span.ItemTile_price__XXXX')?.textContent.trim() ||
       '';
     let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
@@ -77,9 +76,8 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
     const description = itemRow.querySelector('p.ItemRow_description__PfM7O')?.textContent.trim() || "";
     let url = itemRow.querySelector('div.Thumbnail_pintxo-thumbnail__OkiBe img')?.src || "no image found";
 
-    // ✅ Updated price extraction logic for restaurants (prefer original price)
     let priceRaw =
-      itemRow.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() || // Prefer original (pre-discount)
+      itemRow.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() ||
       itemRow.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
     let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
 
@@ -118,14 +116,12 @@ function displayImageItems(items) {
     col.style.overflowWrap = 'break-word';
   });
 
-  // Group items by category
   const grouped = {};
   items.forEach(item => {
     if (!grouped[item.category]) grouped[item.category] = [];
     grouped[item.category].push(item);
   });
 
-  // Populate columns
   for (const [category, catItems] of Object.entries(grouped)) {
     catItems.forEach((item, index) => {
       const cSpan = document.createElement('span');
@@ -199,9 +195,7 @@ function displayImageItems(items) {
   outputContainer.appendChild(container);
 }
 
-// ==================== BUTTON LOGIC ====================
-
-// Store
+// ==================== STORE BUTTON ====================
 loadBtn.addEventListener('click', async () => {
   const url = urlInput.value.trim();
   if (!url) return alert("Please paste a Glovo store URL first.");
@@ -241,7 +235,7 @@ loadBtn.addEventListener('click', async () => {
   }
 });
 
-// Restaurant
+// ==================== RESTAURANT BUTTON (UPDATED) ====================
 loadRestaurantBtn.addEventListener('click', async () => {
   const url = restaurantInput.value.trim();
   if (!url) return alert("Please paste a Glovo restaurant URL first.");
@@ -251,16 +245,37 @@ loadRestaurantBtn.addEventListener('click', async () => {
 
   try {
     const html = await fetchPage(cleanUrl);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // ✅ NEW: Extract all visible <h2 class="pintxo-typography-title3 List_title__Sqg6j">...</h2> categories
+    const restaurantCategories = Array.from(
+      doc.querySelectorAll('h2.pintxo-typography-title3.List_title__Sqg6j')
+    ).map(el => el.textContent.trim()).filter(Boolean);
+
+    console.log("Detected restaurant categories:", restaurantCategories);
+
     allItems = await extractItemsFromHTML(html);
+
+    // Assign categories to items if they exist
+    if (restaurantCategories.length && allItems.length) {
+      let currentCat = restaurantCategories[0];
+      allItems.forEach((item, idx) => {
+        // simple cycling fallback if not perfectly mapped
+        item.category = restaurantCategories[idx % restaurantCategories.length] || currentCat;
+      });
+    }
+
     if (allItems.length) displayImageItems(allItems);
     else outputContainer.textContent = "No items found.";
+
   } catch (err) {
     outputContainer.innerHTML = "Error: " + err.message;
     console.error(err);
   }
 });
 
-// Clear
+// ==================== CLEAR ====================
 clearBtn.addEventListener('click', () => {
   urlInput.value = '';
   restaurantInput.value = '';
@@ -269,9 +284,9 @@ clearBtn.addEventListener('click', () => {
   ageConfirmed = false;
 });
 
-// Copy button (redundant)
+// ==================== COPY BUTTON INFO ====================
 copyBtn.addEventListener('click', () => {
-  alert('Each column now has its own Copy button 😊 Use those instead!');
+  alert('Each column now has its own Copy button 😊');
 });
 
 // ==================== DARK/LIGHT MODE TOGGLE ====================
@@ -297,5 +312,7 @@ themeToggle.addEventListener('change', () => {
     localStorage.setItem('theme', 'dark');
   }
 });
+});
+
 
 
