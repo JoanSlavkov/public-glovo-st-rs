@@ -1,3 +1,6 @@
+
+
+
 const urlInput = document.getElementById('urlInput');
 const loadBtn = document.getElementById('loadBtn');
 const restaurantInput = document.getElementById('restaurantUrlInput');
@@ -312,7 +315,4 @@ themeToggle.addEventListener('change', () => {
     localStorage.setItem('theme', 'dark');
   }
 });
-});
-
-
 
