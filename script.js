@@ -48,7 +48,7 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
     });
   }
 
-  // STORE ITEMS
+  // ==================== STORE ITEMS ====================
   for (const itemTile of doc.querySelectorAll('div.ItemTile_itemTile__ob2HL')) {
     const name = itemTile.querySelector('h3.ItemTile_title__aYrXE')?.textContent.trim() || "Unnamed item";
     const description = itemTile.querySelector('p.ItemTile_description__XXXX')?.textContent.trim() || "";
@@ -61,11 +61,16 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
       '';
     let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
 
+    if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
+      outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
+      await waitForAgeConfirmation();
+    }
+
     if (fallbackUrls.includes(url)) url = "no image found";
     items.push({ name, description, url, category: categoryName, price });
   }
 
-  // RESTAURANT ITEMS
+  // ==================== RESTAURANT ITEMS ====================
   for (const itemRow of doc.querySelectorAll('div.ItemRow_itemRow__k4ndR')) {
     const name = itemRow.querySelector('h2.pintxo-typography-body1')?.textContent.trim() || "Unnamed item";
     const description = itemRow.querySelector('p.ItemRow_description__PfM7O')?.textContent.trim() || "";
@@ -75,6 +80,11 @@ async function extractItemsFromHTML(html, categoryName = 'General') {
       itemRow.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() ||
       itemRow.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
     let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
+
+    if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
+      outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
+      await waitForAgeConfirmation();
+    }
 
     if (fallbackUrls.includes(url)) url = "no image found";
     items.push({ name, description, url, category: categoryName, price });
@@ -185,7 +195,7 @@ function displayImageItems(items) {
   outputContainer.appendChild(container);
 }
 
-// ==================== STORE LOGIC ====================
+// ==================== STORE BUTTON ====================
 loadBtn.addEventListener('click', async () => {
   const url = urlInput.value.trim();
   if (!url) return alert("Please paste a Glovo store URL first.");
@@ -225,7 +235,7 @@ loadBtn.addEventListener('click', async () => {
   }
 });
 
-// ==================== RESTAURANT LOGIC ====================
+// ==================== RESTAURANT BUTTON (UPDATED) ====================
 loadRestaurantBtn.addEventListener('click', async () => {
   const url = restaurantInput.value.trim();
   if (!url) return alert("Please paste a Glovo restaurant URL first.");
@@ -238,27 +248,26 @@ loadRestaurantBtn.addEventListener('click', async () => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // ✅ NEW: extract ALL <p class="pintxo-typography-body2"> categories
-    const categoryParagraphs = Array.from(doc.querySelectorAll('p.pintxo-typography-body2'));
-    const categories = categoryParagraphs.map(p => p.textContent.trim()).filter(Boolean);
-    console.log("Detected restaurant categories:", categories);
+    // ✅ NEW: Extract all visible <h2 class="pintxo-typography-title3 List_title__Sqg6j">...</h2> categories
+    const restaurantCategories = Array.from(
+      doc.querySelectorAll('h2.pintxo-typography-title3.List_title__Sqg6j')
+    ).map(el => el.textContent.trim()).filter(Boolean);
+
+    console.log("Detected restaurant categories:", restaurantCategories);
 
     allItems = await extractItemsFromHTML(html);
 
-    // Assign all categories in order (so they all appear in category column)
-    if (categories.length) {
-      categories.forEach(catName => {
-        allItems.push({ name: '', description: '', url: '', category: catName, price: '' });
+    // Assign categories to items if they exist
+    if (restaurantCategories.length && allItems.length) {
+      let currentCat = restaurantCategories[0];
+      allItems.forEach((item, idx) => {
+        // simple cycling fallback if not perfectly mapped
+        item.category = restaurantCategories[idx % restaurantCategories.length] || currentCat;
       });
     }
 
     if (allItems.length) displayImageItems(allItems);
-    else if (categories.length) {
-      outputContainer.innerHTML = "No items found, but categories detected:<br>" +
-        categories.map(c => `• ${c}`).join("<br>");
-    } else {
-      outputContainer.textContent = "No items found.";
-    }
+    else outputContainer.textContent = "No items found.";
 
   } catch (err) {
     outputContainer.innerHTML = "Error: " + err.message;
@@ -275,9 +284,9 @@ clearBtn.addEventListener('click', () => {
   ageConfirmed = false;
 });
 
-// ==================== COPY ====================
+// ==================== COPY BUTTON INFO ====================
 copyBtn.addEventListener('click', () => {
-  alert('Each column now has its own Copy button 😊 Use those instead!');
+  alert('Each column now has its own Copy button 😊');
 });
 
 // ==================== DARK/LIGHT MODE TOGGLE ====================
@@ -303,6 +312,4 @@ themeToggle.addEventListener('change', () => {
     localStorage.setItem('theme', 'dark');
   }
 });
-
-
 
