@@ -7,17 +7,6 @@ const outputContainer = document.getElementById('outputContainer');
 const copyBtn = document.getElementById('copyBtn');
 
 const PROXY_BASE = 'https://glovo-proxy.onrender.com/fetch?';
-const FALLBACK_IMAGE = 'https://via.placeholder.com/50?text=?';
-const ignoredUrls = [
-  "https://glovo.dhmedia.io/image/customer-assets-glovo/StoreInfoCard/RatingLight.png",
-  "https://glovo.dhmedia.io/image/customer-assets-glovo/StoreInfoCard/PrimeTagIcon.png",
-  "https://glovo.dhmedia.io/image/customer-assets-glovo/StoreInfoCard/PromoTagIcon.png",
-  "https://glovo.dhmedia.io/image/customer-assets-glovo/product_restriction/Blurredcontent01.png"
-];
-const fallbackUrls = [
-  "https://glovo.dhmedia.io/image/customer-assets-glovo/store/productFallback.svg"
-];
-const AGE_RESTRICTED_URL = 'https://glovo.dhmedia.io/image/customer-assets-glovo/product_restriction/Blurredcontent04.png';
 
 let allItems = [];
 let ageConfirmed = false;
@@ -29,66 +18,78 @@ async function fetchPage(url) {
   return await resp.text();
 }
 
+// ==================== IMAGE EXTRACTOR (ONLY DISHES) ====================
+function extractImage(block) {
+  // Strictly select only dish images
+  const img = block.querySelector(`
+    div.Thumbnail_pintxo-thumbnail__rdbgA img,
+    div.ItemRow_itemRowImage__Su_Bu img,
+    img[alt][src*="menus-glovo/products"]
+  `);
+
+  if (!img) return "no image found";
+
+  const src =
+    img.getAttribute("src") ||
+    img.getAttribute("data-src") ||
+    (img.getAttribute("srcset")?.split(" ")[0] ?? "");
+
+  // Filter out non-food images
+  if (
+    !src ||
+    src.includes("icons") ||
+    src.includes("logo") ||
+    src.includes("placeholder") ||
+    src.includes("courier") ||
+    src.includes("banner") ||
+    src.includes("static") ||
+    src.endsWith(".svg")
+  ) {
+    return "no image found";
+  }
+
+  return src;
+}
+
 // ==================== ITEM EXTRACTION ====================
 async function extractItemsFromHTML(html, categoryName = 'General') {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   let items = [];
 
-  // Portugal/Romania items
-  const romaniaPortugalItems = doc.querySelectorAll('div.product-row__content');
-  if (romaniaPortugalItems.length) {
-    romaniaPortugalItems.forEach(row => {
-      const name = row.querySelector('[data-test-id="product-row-name__highlighter"]')?.textContent.trim() || 'Unnamed item';
-      const description = row.querySelector('[data-test-id="product-row-description__highlighter"]')?.textContent.trim() || '';
-      const img = row.querySelector('img.product-row__picture')?.src || 'no image found';
-      let priceRaw = row.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
-      let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
-      items.push({ name, description, url: img, category: categoryName, price });
+  const productBlocks = doc.querySelectorAll(
+    "div.ListItem_pintxo-list-item__I4KLO, div.ItemRow_itemRowListItem__N_Qs_"
+  );
+
+  productBlocks.forEach(block => {
+    const url = extractImage(block);
+    if (url === "no image found") return; // skip items without dish images
+
+    const name =
+      block.querySelector("h2.pintxo-typography-body1")?.textContent.trim() ||
+      block.querySelector("h3")?.textContent.trim() ||
+      "Unnamed item";
+
+    const description =
+      block.querySelector("p.ItemRow_description__PfM7O")?.textContent.trim() ||
+      block.querySelector("p.pintxo-typography-body2")?.textContent.trim() ||
+      "";
+
+    let priceRaw =
+      block.querySelector("div.ItemRow_priceContainer__G5B13 span.pintxo-typography-body2")?.textContent.trim() ||
+      block.querySelector("span.pintxo-typography-body2")?.textContent.trim() ||
+      "";
+
+    let price = priceRaw.split("(")[0].trim().replace(/,/g, ".");
+
+    items.push({
+      name,
+      description,
+      url,
+      price,
+      category: categoryName,
     });
-  }
-
-  // ==================== STORE ITEMS ====================
-  for (const itemTile of doc.querySelectorAll('div.ItemTile_itemTile__ob2HL')) {
-    const name = itemTile.querySelector('h3.ItemTile_title__aYrXE')?.textContent.trim() || "Unnamed item";
-    const description = itemTile.querySelector('p.ItemTile_description__XXXX')?.textContent.trim() || "";
-    let url = itemTile.querySelector('img.ItemTile_image__Qr45O')?.src || "no image found";
-
-    let priceRaw =
-      itemTile.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() ||
-      itemTile.querySelector('div.ItemTile_priceContainer__b3Shd span.pintxo-typography-body2')?.textContent.trim() ||
-      itemTile.querySelector('span.ItemTile_price__XXXX')?.textContent.trim() ||
-      '';
-    let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
-
-    if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
-      outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
-      await waitForAgeConfirmation();
-    }
-
-    if (fallbackUrls.includes(url)) url = "no image found";
-    items.push({ name, description, url, category: categoryName, price });
-  }
-
-  // ==================== RESTAURANT ITEMS ====================
-  for (const itemRow of doc.querySelectorAll('div.ItemRow_itemRow__k4ndR')) {
-    const name = itemRow.querySelector('h2.pintxo-typography-body1')?.textContent.trim() || "Unnamed item";
-    const description = itemRow.querySelector('p.ItemRow_description__PfM7O')?.textContent.trim() || "";
-    let url = itemRow.querySelector('div.Thumbnail_pintxo-thumbnail__OkiBe img')?.src || "no image found";
-
-    let priceRaw =
-      itemRow.querySelector('span.ItemRow_originalPrice__3QZpk')?.textContent.trim() ||
-      itemRow.querySelector('span.pintxo-typography-body2')?.textContent.trim() || '';
-    let price = priceRaw.split('(')[0].trim().replace(/,/g, '.');
-
-    if (url === AGE_RESTRICTED_URL && !ageConfirmed) {
-      outputContainer.innerHTML = "Products needing age verification, automatically confirming age…";
-      await waitForAgeConfirmation();
-    }
-
-    if (fallbackUrls.includes(url)) url = "no image found";
-    items.push({ name, description, url, category: categoryName, price });
-  }
+  });
 
   return items;
 }
@@ -195,7 +196,7 @@ function displayImageItems(items) {
   outputContainer.appendChild(container);
 }
 
-// ==================== STORE BUTTON ====================
+// ==================== LOAD STORE ====================
 loadBtn.addEventListener('click', async () => {
   const url = urlInput.value.trim();
   if (!url) return alert("Please paste a Glovo store URL first.");
@@ -235,7 +236,7 @@ loadBtn.addEventListener('click', async () => {
   }
 });
 
-// ==================== RESTAURANT BUTTON (UPDATED) ====================
+// ==================== LOAD RESTAURANT ====================
 loadRestaurantBtn.addEventListener('click', async () => {
   const url = restaurantInput.value.trim();
   if (!url) return alert("Please paste a Glovo restaurant URL first.");
@@ -248,20 +249,15 @@ loadRestaurantBtn.addEventListener('click', async () => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // ✅ NEW: Extract all visible <h2 class="pintxo-typography-title3 List_title__Sqg6j">...</h2> categories
     const restaurantCategories = Array.from(
       doc.querySelectorAll('h2.pintxo-typography-title3.List_title__Sqg6j')
     ).map(el => el.textContent.trim()).filter(Boolean);
 
-    console.log("Detected restaurant categories:", restaurantCategories);
-
     allItems = await extractItemsFromHTML(html);
 
-    // Assign categories to items if they exist
     if (restaurantCategories.length && allItems.length) {
       let currentCat = restaurantCategories[0];
       allItems.forEach((item, idx) => {
-        // simple cycling fallback if not perfectly mapped
         item.category = restaurantCategories[idx % restaurantCategories.length] || currentCat;
       });
     }
@@ -284,12 +280,12 @@ clearBtn.addEventListener('click', () => {
   ageConfirmed = false;
 });
 
-// ==================== COPY BUTTON INFO ====================
+// ==================== COPY BUTTON ====================
 copyBtn.addEventListener('click', () => {
   alert('Each column now has its own Copy button 😊');
 });
 
-// ==================== DARK/LIGHT MODE TOGGLE ====================
+// ==================== DARK/LIGHT MODE ====================
 const themeToggle = document.getElementById('themeToggle');
 const themeLabel = document.getElementById('themeLabel');
 
@@ -312,4 +308,6 @@ themeToggle.addEventListener('change', () => {
     localStorage.setItem('theme', 'dark');
   }
 });
+
+
 
